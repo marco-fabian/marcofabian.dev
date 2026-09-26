@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { useTranslations, type Lang } from '../i18n/ui';
 import photo from '../assets/marco.jpg';
+import { site } from '../data/site';
 
 interface Props {
   lang: Lang;
@@ -12,8 +13,8 @@ const t = useTranslations(lang);
 
 const credentials = ['Belo Horizonte', 'Clavia', 'High.AI', 'Somedi.AI', 'NetZero', 'UFMG', 'Trybe'];
 const links = [
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/marco-fabian' },
-  { label: 'GitHub', href: 'https://github.com/marco-fabian' },
+  { label: 'LinkedIn', href: site.linkedin },
+  { label: 'GitHub', href: site.github },
 ];
 ---
 
@@ -32,7 +33,7 @@ const links = [
       <p class="creds">{credentials.join(' · ')}</p>
 
       <div class="actions">
-        <a class="btn" href="/marco-fabian-cv.pdf" download>{t('about.cv')} ↓</a>
+        <a class="btn" href={site.cv} download>{t('about.cv')} ↓</a>
         {
           links.map((l) => (
             <a class="link" href={l.href} target="_blank" rel="noopener">

@@ -45,6 +45,12 @@ export const ui = {
       'Os primeiros agentes nasceram em n8n. Com o volume crescendo, levei tudo para uma arquitetura code-first: Kestra, Python, Git, CI. Hoje lidero o time de implantação de IA na Clavia, onde nossos agentes atendem mais de 40 negócios no WhatsApp. Entrei como engenheiro e fui promovido a líder depois de ser eleito Employee of the Month.',
     'about.photoAlt': 'Marco Fabian sorrindo, de camisa branca, segurando uma caneca de café',
     'about.cv': 'Baixar CV',
+    'contact.title': 'Vamos colocar um agente em produção?',
+    'contact.body': 'Me conta sobre a sua operação. Eu respondo em até um dia útil.',
+    'contact.whatsapp': 'Falar no WhatsApp',
+    'contact.email': 'Enviar e-mail',
+    'contact.message': 'Oi Marco, vi seu site e queria conversar sobre um projeto.',
+    'footer.rights': 'Marco Fabian',
   },
   en: {
     'meta.title': 'Marco Fabian · AI Engineer',
@@ -88,6 +94,12 @@ export const ui = {
       'The first agents were built in n8n. As volume grew, I moved everything to a code-first architecture: Kestra, Python, Git, CI. Today I lead the AI implementation team at Clavia, where our agents serve 40+ businesses on WhatsApp. I joined as an engineer and was promoted to lead after being named Employee of the Month.',
     'about.photoAlt': 'Marco Fabian smiling, in a white shirt, holding a coffee mug',
     'about.cv': 'Download CV',
+    'contact.title': 'Ready to put an agent into production?',
+    'contact.body': 'Tell me about your operation. I reply within one business day.',
+    'contact.whatsapp': 'Message on WhatsApp',
+    'contact.email': 'Send an email',
+    'contact.message': 'Hi Marco, I saw your website and would like to talk about a project.',
+    'footer.rights': 'Marco Fabian',
   },
 } as const;
 

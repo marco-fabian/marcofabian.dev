@@ -1,0 +1,71 @@
+---
+import type { Lang } from '../i18n/ui';
+import { stack } from '../data/stack';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const groups = stack[lang];
+---
+
+<section class="stack" id="stack">
+  <div class="container">
+    <p class="eyebrow">stack</p>
+    <dl class="groups">
+      {
+        groups.map((g) => (
+          <div class="group">
+            <dt>{g.label}</dt>
+            <dd>{g.items.join(' · ')}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .stack {
+    padding: 0 0 112px;
+  }
+
+  .eyebrow {
+    margin: 0 0 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-on-paper-muted);
+  }
+
+  .groups {
+    margin: 0;
+    border-top: 1px solid var(--paper-line);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+
+  .group {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 24px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  dt {
+    color: #a3a3a3;
+  }
+
+  dd {
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 640px) {
+    .group {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+</style>
