@@ -1,7 +1,6 @@
 // Dados de contato num lugar só.
-// TODO: trocar para contato@marcofabian.dev quando o e-mail do domínio estiver ativo.
 export const site = {
-  email: 'marcofabianufmg@hotmail.com',
+  email: 'contato@marcofabian.dev',
   whatsapp: '5577999078348',
   linkedin: 'https://www.linkedin.com/in/marco-fabian',
   github: 'https://github.com/marco-fabian',
