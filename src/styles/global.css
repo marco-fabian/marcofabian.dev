@@ -21,7 +21,7 @@
   --font-sans: 'Geist Variable', system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
-  --container: 1120px;
+  --container: 1200px;
   --gutter: clamp(16px, 4vw, 32px);
   --radius: 12px;
   --pill: 999px;

@@ -1,0 +1,125 @@
+---
+import { useTranslations, localePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const home = localePath(lang);
+---
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="nav__logo" href={home} aria-label="Marco Fabian">MF</a>
+
+    <nav class="nav__links" aria-label="Principal">
+      <a href={`${home}#cases`}>{t('nav.cases')}</a>
+      <a href={`${home}#servicos`}>{t('nav.services')}</a>
+      <a href={`${home}#sobre`}>{t('nav.about')}</a>
+    </nav>
+
+    <div class="nav__actions">
+      <div class="nav__lang" role="group" aria-label="Idioma / Language">
+        <a href={localePath('pt')} aria-current={lang === 'pt' ? 'true' : undefined}>PT</a>
+        <a href={localePath('en')} aria-current={lang === 'en' ? 'true' : undefined}>EN</a>
+      </div>
+      <a class="nav__cta" href={`${home}#contato`}>{t('nav.cta')}</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 10;
+    color: var(--text-on-ink);
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    gap: 24px;
+  }
+
+  .nav__logo {
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+
+  .nav__links {
+    display: flex;
+    gap: 28px;
+    font-size: 14px;
+  }
+
+  .nav__links a {
+    text-decoration: none;
+    color: var(--text-on-ink-muted);
+    transition: color 0.2s;
+  }
+
+  .nav__links a:hover {
+    color: var(--text-on-ink);
+  }
+
+  .nav__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav__lang {
+    display: flex;
+    padding: 3px;
+    border: 1px solid var(--ink-line);
+    border-radius: var(--pill);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .nav__lang a {
+    padding: 3px 9px;
+    border-radius: var(--pill);
+    text-decoration: none;
+    color: var(--text-on-ink-muted);
+  }
+
+  .nav__lang a[aria-current] {
+    background: var(--text-on-ink);
+    color: var(--ink);
+  }
+
+  .nav__cta {
+    padding: 9px 18px;
+    border-radius: var(--pill);
+    background: var(--text-on-ink);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .nav__cta:hover {
+    opacity: 0.85;
+  }
+
+  @media (max-width: 760px) {
+    .nav__links {
+      display: none;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .nav__cta {
+      display: none;
+    }
+  }
+</style>

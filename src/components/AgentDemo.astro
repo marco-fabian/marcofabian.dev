@@ -1,0 +1,245 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+import { agentDemo } from '../data/agent-demo';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const steps = agentDemo[lang];
+---
+
+<div class="demo" data-demo data-view="chat">
+  <div class="demo__bar">
+    <span class="demo__label">
+      <span class="demo__dot" aria-hidden="true"></span>
+      <span data-label-chat>{t('demo.chatLabel')}</span>
+      <span data-label-log>{t('demo.logLabel')}</span>
+    </span>
+    <button class="demo__toggle" type="button" data-toggle>
+      <span data-label-chat>{t('demo.toInside')}</span>
+      <span data-label-log>{t('demo.toChat')}</span>
+    </button>
+  </div>
+
+  <div class="demo__screen">
+    <ol class="demo__chat" aria-label={t('demo.chatLabel')}>
+      {steps.map((s, i) => (
+        <li class={`bubble bubble--${s.chat.kind}`} data-step={i}>{s.chat.text}</li>
+      ))}
+    </ol>
+
+    <ol class="demo__log" aria-label={t('demo.logLabel')}>
+      {steps.map((s, i) =>
+        s.log.map((line) => {
+          const [time, ...rest] = line.split(' ');
+          const body = rest.join(' ');
+          const cls = body.startsWith('✓') ? 'ok' : body.startsWith('→') ? 'tool' : '';
+          return (
+            <li class="line" data-step={i}>
+              <span class="line__time">{time}</span> <span class={cls}>{body}</span>
+            </li>
+          );
+        })
+      )}
+    </ol>
+  </div>
+</div>
+
+<script>
+  const STEP_MS = 1100;
+  const RESTART_MS = 4500;
+
+  document.querySelectorAll<HTMLElement>('[data-demo]').forEach((root) => {
+    const items = [...root.querySelectorAll<HTMLElement>('[data-step]')];
+    const total = Math.max(...items.map((el) => Number(el.dataset.step))) + 1;
+    const screens = root.querySelectorAll<HTMLElement>('.demo__chat, .demo__log');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    root.querySelector('[data-toggle]')?.addEventListener('click', () => {
+      root.dataset.view = root.dataset.view === 'chat' ? 'log' : 'chat';
+    });
+
+    const show = (step: number) => {
+      items.forEach((el) => el.classList.toggle('is-on', Number(el.dataset.step) <= step));
+      screens.forEach((s) => s.scrollTo({ top: s.scrollHeight, behavior: 'smooth' }));
+    };
+
+    if (reduced) {
+      show(total - 1);
+      return;
+    }
+
+    let step = -1;
+    let timer: number;
+    const tick = () => {
+      step += 1;
+      if (step >= total) {
+        step = -1;
+        show(-1);
+        timer = window.setTimeout(tick, 600);
+        return;
+      }
+      show(step);
+      timer = window.setTimeout(tick, step === total - 1 ? RESTART_MS : STEP_MS);
+    };
+
+    // Só anima quando o demo está visível
+    new IntersectionObserver(([entry]) => {
+      window.clearTimeout(timer);
+      if (entry.isIntersecting) timer = window.setTimeout(tick, 500);
+    }).observe(root);
+  });
+</script>
+
+<style>
+  .demo {
+    width: 100%;
+    border: 1px solid var(--ink-line);
+    border-radius: 16px;
+    background: #050505;
+    overflow: hidden;
+  }
+
+  .demo__bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--ink-line);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-on-ink-muted);
+  }
+
+  .demo__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .demo__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--live);
+  }
+
+  .demo__toggle {
+    all: unset;
+    cursor: pointer;
+    color: var(--text-on-ink);
+    padding: 4px 10px;
+    border: 1px solid var(--ink-line);
+    border-radius: var(--pill);
+    transition: border-color 0.2s;
+  }
+
+  .demo__toggle:hover,
+  .demo__toggle:focus-visible {
+    border-color: #555;
+  }
+
+  .demo[data-view='chat'] [data-label-log],
+  .demo[data-view='log'] [data-label-chat] {
+    display: none;
+  }
+
+  .demo__screen {
+    position: relative;
+    height: 380px;
+  }
+
+  .demo__chat,
+  .demo__log {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 20px;
+    list-style: none;
+    overflow-y: auto;
+    scrollbar-width: none;
+    mask-image: linear-gradient(to bottom, transparent 0, #000 48px);
+    transition: opacity 0.35s;
+  }
+
+  .demo[data-view='chat'] .demo__log,
+  .demo[data-view='log'] .demo__chat {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .demo__chat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bubble,
+  .line {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 0.35s,
+      transform 0.35s;
+  }
+
+  .bubble.is-on,
+  .line.is-on {
+    opacity: 1;
+    transform: none;
+  }
+
+  .bubble {
+    max-width: 78%;
+    padding: 9px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .bubble--in {
+    align-self: flex-start;
+    background: #1c1c1c;
+    color: var(--text-on-ink);
+    border-bottom-left-radius: 4px;
+  }
+
+  .bubble--out {
+    align-self: flex-end;
+    background: var(--text-on-ink);
+    color: var(--ink);
+    border-bottom-right-radius: 4px;
+  }
+
+  .bubble--tool {
+    align-self: center;
+    max-width: none;
+    padding: 3px 12px;
+    border: 1px solid var(--ink-line);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-on-ink-muted);
+  }
+
+  .demo__log {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: #cfcfcf;
+  }
+
+  .line__time {
+    color: #5c5c5c;
+  }
+
+  .tool {
+    color: #fff;
+  }
+
+  .ok {
+    color: var(--live);
+  }
+</style>
