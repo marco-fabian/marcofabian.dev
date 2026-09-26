@@ -1,0 +1,65 @@
+---
+order: 1
+title: Multi-tenant AI agent platform on WhatsApp
+summary: Agents that answer, qualify and book for 40+ businesses. I led the architecture and system decisions, from design to production operations.
+client: AI agent SaaS
+role: AI implementation lead · architecture and system decisions
+period: Sep 2025 → present
+stack: [kestra, python, supabase, postgres (rls), chatwoot, openrouter, gemini, github actions, docker]
+results:
+  - { value: '40+', label: 'businesses in production' }
+  - { value: '15k', label: 'messages a day' }
+  - { value: '90%', label: 'solved without humans' }
+  - { value: '60 s', label: 'response time (was ~30 min)' }
+---
+
+import ArchDiagram from '../../../components/ArchDiagram.astro';
+
+## Context
+
+The company puts AI agents on the WhatsApp lines of clinics, medical offices and sales teams. The agent answers the lead, qualifies them, books, reschedules, follows up, and hands off to a human when needed.
+
+The system already ran on n8n and worked, but it was hitting the limits of visual automation at scale: fragile flows, requests returning empty, little observability, and no decent way to version or test changes. With dozens of clients in production, every tweak was a risk.
+
+## Architecture
+
+I rebuilt the platform on **Kestra**, with code-first orchestration: everything is YAML, versioned in Git, validated in CI and published automatically.
+
+<figure class="figure">
+  <ArchDiagram lang="en" />
+  <figcaption>A message comes in through WhatsApp, goes through the receiver and the agentic loop, and reaches the integrations through adapters.</figcaption>
+</figure>
+
+- **12 YAML workflows** isolated in **3 namespaces** to separate clients (multi-tenant). Deploys are GitOps: validation on pull request and automatic publishing through the Kestra API.
+- **Custom agentic loop with 12 tools**: book, reschedule, qualify lead, move through the pipeline, RAG search and human handoff. The loop is bounded by iteration count, with typed inputs and outputs.
+- **Multi-provider LLM** (OpenRouter + Gemini), with schema conversion between formats. Switching models is configuration, not a flow rewrite.
+- **Adapter-based integrations**: calendars (Google, Amigo, GestãoDS), WhatsApp (official API, WAHA and UAZAPI), Chatwoot and Supabase (Postgres with RLS).
+
+## Decisions and challenges
+
+### Why leave n8n
+
+I was already running everything on n8n. Moving to Kestra was about getting what visual automation can’t deliver at scale: versioned code, E2E tests, CI validation, real observability and deeper integrations. I went from flows that were hard to version and test to an auditable platform.
+
+### A duplicate message is a production bug
+
+WhatsApp webhooks resend events, and a lead who gets the same reply twice notices right away. I implemented **idempotency with an outbox and deduplication**, which ended duplicate messages and empty-response requests.
+
+### Operating without deploys
+
+Every client has its own prompt, and it changes all the time. I built **versioned prompts (live/test) per project**, editable from a custom dashboard. Tuning the agent’s behavior needs no deploy and no workflow changes.
+
+### The agent moves the pipeline too
+
+With **LeadTrack**, the agent moves the lead through the sales pipeline and fires events automatically. Follow-ups and reminders are scheduled within each client’s business hours.
+
+## Results
+
+- **40+ businesses** in production and **15k+ messages** processed a day.
+- **About 5,000 appointments** booked by the agents.
+- **90% of conversations** solved without human intervention.
+- Response time down from **~30 minutes to 60 seconds**.
+- **No-shows down more than 50%** with automated reminders.
+- **30% lower token cost** after the migration.
+- The main receiver (`wa-message-receiver`) ran **~29k executions in 7 days with 100% success**. On a single day, the platform ran **10.7k executions** with near-zero failures.
+- **3 months of continuous production, zero downtime.**

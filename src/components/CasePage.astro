@@ -1,0 +1,381 @@
+---
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Nav from './Nav.astro';
+import Contact from './Contact.astro';
+import { useTranslations, localePath, type Lang } from '../i18n/ui';
+import { caseSlug, type CaseEntry } from '../lib/cases';
+
+interface Props {
+  lang: Lang;
+  entry: CaseEntry;
+  next?: CaseEntry;
+}
+
+const { lang, entry, next } = Astro.props;
+const t = useTranslations(lang);
+const { Content, headings } = await render(entry);
+const d = entry.data;
+const toc = headings.filter((h) => h.depth === 2);
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<Base lang={lang} title={`${d.title} · Marco Fabian`} description={d.summary}>
+  <header class="head">
+    <Nav lang={lang} path={`/cases/${caseSlug(entry)}`} />
+    <div class="container">
+      <a class="back" href={localePath(lang, '/#cases')}>{t('case.back')}</a>
+      <p class="kicker">
+        case {pad(d.order)} · {d.client}
+        {d.live && <span class="live"><span class="dot" aria-hidden="true" />{t('case.live')}</span>}
+      </p>
+      <h1 class="title">{d.title}</h1>
+      <p class="summary">{d.summary}</p>
+      <ul class="results">
+        {
+          d.results.map((r) => (
+            <li>
+              <span class="results__value">{r.value}</span>
+              <span class="results__label">{r.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </header>
+
+  <main class="container body">
+    <aside class="side">
+      <dl>
+        <dt>{t('case.role')}</dt>
+        <dd>{d.role}</dd>
+        <dt>{t('case.period')}</dt>
+        <dd>{d.period}</dd>
+        <dt>{t('case.stack')}</dt>
+        <dd>{d.stack.join(' · ')}</dd>
+      </dl>
+      {
+        toc.length > 0 && (
+          <nav class="toc" aria-label={t('case.toc')}>
+            <p>{t('case.toc')}</p>
+            {toc.map((h) => (
+              <a href={`#${h.slug}`}>{h.text}</a>
+            ))}
+          </nav>
+        )
+      }
+    </aside>
+
+    <article class="prose">
+      <Content />
+
+      {
+        next && (
+          <a class="next" href={localePath(lang, `/cases/${caseSlug(next)}`)}>
+            <span>
+              <span class="next__label">{t('case.next')}</span>
+              <span class="next__title">{next.data.title}</span>
+            </span>
+            <span class="next__arrow" aria-hidden="true">→</span>
+          </a>
+        )
+      }
+    </article>
+  </main>
+
+  <Contact lang={lang} />
+</Base>
+
+<style>
+  .head {
+    position: relative;
+    background: var(--ink);
+    color: var(--text-on-ink);
+    padding: 120px 0 64px;
+  }
+
+  .back {
+    display: inline-block;
+    margin-bottom: 40px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-on-ink-muted);
+    text-decoration: none;
+  }
+
+  .back:hover {
+    color: var(--text-on-ink);
+  }
+
+  .kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    margin: 0 0 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-on-ink-muted);
+  }
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--live);
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--live);
+  }
+
+  .title {
+    margin: 0 0 16px;
+    max-width: 860px;
+    font-size: clamp(32px, 4.6vw, 56px);
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  .summary {
+    margin: 0;
+    max-width: 640px;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--text-on-ink-muted);
+  }
+
+  .results {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    margin: 48px 0 0;
+    padding: 28px 0 0;
+    list-style: none;
+    border-top: 1px solid var(--ink-line);
+  }
+
+  .results li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .results__value {
+    font-size: clamp(26px, 3vw, 36px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--live);
+  }
+
+  .results__label {
+    font-size: 14px;
+    color: var(--text-on-ink-muted);
+  }
+
+  /* corpo */
+  .body {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 64px;
+    padding-top: 72px;
+    padding-bottom: 112px;
+  }
+
+  .side {
+    position: sticky;
+    top: 32px;
+    align-self: start;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .side dl {
+    margin: 0 0 32px;
+  }
+
+  .side dt,
+  .toc p {
+    margin: 0 0 4px;
+    color: #a3a3a3;
+  }
+
+  .side dd {
+    margin: 0 0 20px;
+    line-height: 1.6;
+  }
+
+  .toc {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 20px;
+    border-top: 1px solid var(--paper-line);
+  }
+
+  .toc a {
+    color: var(--text-on-paper-muted);
+    text-decoration: none;
+  }
+
+  .toc a:hover {
+    color: var(--text-on-paper);
+  }
+
+  /* texto longo */
+  .prose {
+    max-width: 700px;
+    font-size: 17px;
+    line-height: 1.75;
+    color: #2a2a2a;
+  }
+
+  .prose :global(h2) {
+    margin: 64px 0 16px;
+    scroll-margin-top: 32px;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-on-paper);
+  }
+
+  .prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+
+  .prose :global(h3) {
+    margin: 36px 0 8px;
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--text-on-paper);
+  }
+
+  .prose :global(p) {
+    margin: 0 0 18px;
+  }
+
+  .prose :global(ul) {
+    margin: 0 0 18px;
+    padding-left: 20px;
+  }
+
+  .prose :global(li) {
+    margin-bottom: 8px;
+  }
+
+  .prose :global(li::marker) {
+    color: #a3a3a3;
+  }
+
+  .prose :global(strong) {
+    font-weight: 600;
+    color: var(--text-on-paper);
+  }
+
+  .prose :global(code) {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #efefef;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  .prose :global(.figure) {
+    margin: 28px 0;
+    padding: 24px;
+    border-radius: var(--radius);
+    background: var(--ink);
+  }
+
+  .prose :global(.figure figcaption) {
+    margin-top: 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #7a7a7a;
+  }
+
+  .next {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    margin-top: 72px;
+    padding: 24px 28px;
+    border: 1px solid var(--paper-line);
+    border-radius: 16px;
+    background: var(--paper-2);
+    text-decoration: none;
+    transition: border-color 0.25s;
+  }
+
+  .next:hover {
+    border-color: #cfcfcf;
+  }
+
+  .next__label {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #a3a3a3;
+  }
+
+  .next__title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--text-on-paper);
+  }
+
+  .next__arrow {
+    font-size: 20px;
+    transition: transform 0.25s;
+  }
+
+  .next:hover .next__arrow {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 900px) {
+    .head {
+      padding: 104px 0 48px;
+    }
+
+    .results {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 28px;
+    }
+
+    .body {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 40px;
+      padding-top: 48px;
+    }
+
+    .side {
+      position: static;
+      padding: 20px;
+      border: 1px solid var(--paper-line);
+      border-radius: var(--radius);
+      background: var(--paper-2);
+    }
+
+    .side dl {
+      margin-bottom: 0;
+    }
+
+    .side dd:last-child {
+      margin-bottom: 0;
+    }
+
+    .toc {
+      display: none;
+    }
+  }
+</style>

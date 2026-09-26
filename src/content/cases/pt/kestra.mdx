@@ -1,0 +1,65 @@
+---
+order: 1
+title: Plataforma multi-tenant de agentes de IA no WhatsApp
+summary: Agentes que atendem, qualificam e agendam para mais de 40 negócios. Liderei a arquitetura e as decisões de sistema, do design à operação em produção.
+client: SaaS de agentes de IA
+role: Líder de implantação de IA · arquitetura e decisões de sistema
+period: set/2025 → hoje
+stack: [kestra, python, supabase, postgres (rls), chatwoot, openrouter, gemini, github actions, docker]
+results:
+  - { value: '40+', label: 'negócios em produção' }
+  - { value: '15 mil', label: 'mensagens por dia' }
+  - { value: '90%', label: 'resolvidas sem humano' }
+  - { value: '60 s', label: 'tempo de resposta (era ~30 min)' }
+---
+
+import ArchDiagram from '../../../components/ArchDiagram.astro';
+
+## Contexto
+
+A empresa coloca agentes de IA para atender no WhatsApp de clínicas, consultórios e operações comerciais. O agente responde o lead, qualifica, agenda, remarca, faz follow-up e passa para um humano quando precisa.
+
+Esse sistema já rodava em n8n e funcionava, mas começou a mostrar os limites da automação visual em escala: fluxos frágeis, requisições com retorno vazio, pouca observabilidade e nenhuma forma decente de versionar ou testar mudanças. Com dezenas de clientes em produção, cada ajuste virava um risco.
+
+## Arquitetura
+
+Reconstruí a plataforma em **Kestra**, com orquestração code-first: tudo é YAML versionado no Git, validado em CI e publicado automaticamente.
+
+<figure class="figure">
+  <ArchDiagram lang="pt" />
+  <figcaption>Mensagem entra pelo WhatsApp, passa pelo receptor e pelo agentic loop, e se conecta às integrações via adapters.</figcaption>
+</figure>
+
+- **12 workflows em YAML**, isolados em **3 namespaces** para separar os clientes (multi-tenant). O deploy é GitOps: validação em pull request e publicação automática pela API do Kestra.
+- **Agentic loop próprio com 12 tools**: agendar, remarcar, qualificar lead, mover no funil, busca com RAG e handoff humano. O loop é controlado por número de iterações e tem entrada e saída tipadas.
+- **Multi-provider de LLM** (OpenRouter + Gemini), com conversão de schema entre os formatos. Trocar de modelo é configuração, não reescrita de fluxo.
+- **Integrações por adapter**: calendários (Google, Amigo, GestãoDS), WhatsApp (API oficial, WAHA e UAZAPI), Chatwoot e Supabase (Postgres com RLS).
+
+## Decisões e desafios
+
+### Por que sair do n8n
+
+Eu já operava tudo em n8n. A migração para Kestra foi para ganhar o que automação visual não entrega em escala: código versionado, testes E2E, validação em CI, observabilidade real e integrações mais profundas. Saí de fluxos difíceis de versionar e testar para uma plataforma auditável.
+
+### Mensagem duplicada é bug de produção
+
+Webhooks de WhatsApp reenviam eventos, e um lead que recebe a mesma resposta duas vezes percebe na hora. Implementei **idempotência com outbox e deduplicação**, o que acabou com as mensagens duplicadas e com as requisições de retorno vazio.
+
+### Operar sem deploy
+
+Cada cliente tem o seu prompt, e ele muda o tempo todo. Criei **prompts versionados (live/test) por projeto**, editáveis por um dashboard próprio. Ajustar o comportamento do agente não exige deploy nem mexer em workflow.
+
+### O agente também move o funil
+
+Com o **LeadTrack**, o agente move o lead pelos estágios do funil comercial e dispara eventos automaticamente. Follow-ups e lembretes são agendados respeitando o horário de atendimento de cada cliente.
+
+## Resultados
+
+- **Mais de 40 negócios** em produção e **mais de 15 mil mensagens** processadas por dia.
+- **Cerca de 5 mil agendamentos** feitos pelos agentes.
+- **90% das conversas** resolvidas sem intervenção humana.
+- Tempo de resposta de **~30 minutos para 60 segundos**.
+- **No-show mais de 50% menor** com lembretes automáticos.
+- **30% menos custo de tokens** depois da migração.
+- O receptor principal (`wa-message-receiver`) fez **~29 mil execuções em 7 dias com 100% de sucesso**. Num único dia, a plataforma rodou **10,7 mil execuções** com falhas próximas de zero.
+- **3 meses em produção contínua, sem cair.**

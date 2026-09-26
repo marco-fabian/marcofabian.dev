@@ -51,6 +51,13 @@ export const ui = {
     'contact.email': 'Enviar e-mail',
     'contact.message': 'Oi Marco, vi seu site e queria conversar sobre um projeto.',
     'footer.rights': 'Marco Fabian',
+    'case.back': '← todos os cases',
+    'case.live': 'em produção',
+    'case.role': 'papel',
+    'case.period': 'período',
+    'case.stack': 'stack',
+    'case.toc': 'nesta página',
+    'case.next': 'próximo case',
   },
   en: {
     'meta.title': 'Marco Fabian · AI Engineer',
@@ -100,6 +107,13 @@ export const ui = {
     'contact.email': 'Send an email',
     'contact.message': 'Hi Marco, I saw your website and would like to talk about a project.',
     'footer.rights': 'Marco Fabian',
+    'case.back': '← all cases',
+    'case.live': 'in production',
+    'case.role': 'role',
+    'case.period': 'period',
+    'case.stack': 'stack',
+    'case.toc': 'on this page',
+    'case.next': 'next case',
   },
 } as const;
 
