@@ -32,6 +32,11 @@ export const ui = {
     'cases.title': 'O que eu coloquei em produção',
     'cases.featured': 'destaque',
     'cases.read': 'Ler o case',
+    'services.eyebrow': 'serviços',
+    'services.title': 'Como eu posso ajudar a sua operação',
+    'services.shiftsLabel': 'o que muda quando o agente entra',
+    'services.processEyebrow': 'como funciona',
+    'services.processTitle': 'Quatro passos. Depois, o agente trabalha e eu acompanho.',
   },
   en: {
     'meta.title': 'Marco Fabian · AI Engineer',
@@ -62,6 +67,11 @@ export const ui = {
     'cases.title': 'What I’ve shipped to production',
     'cases.featured': 'featured',
     'cases.read': 'Read the case',
+    'services.eyebrow': 'services',
+    'services.title': 'How I can help your operation',
+    'services.shiftsLabel': 'what changes when the agent comes in',
+    'services.processEyebrow': 'how it works',
+    'services.processTitle': 'Four steps. Then the agent works and I keep watch.',
   },
 } as const;
 
