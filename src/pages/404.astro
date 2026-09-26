@@ -1,0 +1,76 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+---
+
+<Base lang="pt" title="404 · Marco Fabian" description="Página não encontrada.">
+  <main class="nf">
+    <Nav lang="pt" />
+    <div class="container">
+      <p class="code">404 · not found</p>
+      <h1>Essa página não está em produção.</h1>
+      <p class="en">This page isn’t in production.</p>
+      <div class="links">
+        <a class="btn" href="/">Voltar para a home</a>
+        <a class="link" href="/en">Back to home (EN)</a>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .nf {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--ink);
+    color: var(--text-on-ink);
+  }
+
+  .code {
+    margin: 0 0 20px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: #f0b429;
+  }
+
+  h1 {
+    margin: 0 0 12px;
+    max-width: 760px;
+    font-size: clamp(36px, 5.6vw, 68px);
+    line-height: 1.04;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  .en {
+    margin: 0 0 40px;
+    font-size: 18px;
+    color: var(--text-on-ink-muted);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 28px;
+  }
+
+  .btn {
+    padding: 14px 26px;
+    border-radius: var(--pill);
+    background: var(--text-on-ink);
+    color: var(--ink);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .link {
+    color: var(--text-on-ink-muted);
+    text-decoration: none;
+    border-bottom: 1px solid #333;
+  }
+</style>

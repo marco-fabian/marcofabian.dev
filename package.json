@@ -21,5 +21,10 @@
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "geist": "^1.7.2",
+    "satori": "^0.33.5"
   }
 }

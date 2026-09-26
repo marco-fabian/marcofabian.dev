@@ -20,7 +20,13 @@ const toc = headings.filter((h) => h.depth === 2);
 const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
-<Base lang={lang} title={`${d.title} · Marco Fabian`} description={d.summary}>
+<Base
+  lang={lang}
+  title={`${d.title} · Marco Fabian`}
+  description={d.summary}
+  path={`/cases/${caseSlug(entry)}`}
+  ogImage={`/og/cases/${lang}/${caseSlug(entry)}.png`}
+>
   <header class="head">
     <Nav lang={lang} path={`/cases/${caseSlug(entry)}`} />
     <div class="container">
