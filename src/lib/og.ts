@@ -3,11 +3,12 @@ import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 
 // Imagens de compartilhamento (1200×630) geradas no build, no mesmo visual do site.
-const fontDir = 'node_modules/geist/dist/fonts';
+// TTFs da Geist (licença OFL) versionados em assets/fonts, porque o satori não lê woff2.
+const fontDir = 'assets/fonts';
 const fonts = Promise.all([
-  readFile(`${fontDir}/geist-sans/Geist-Regular.ttf`),
-  readFile(`${fontDir}/geist-sans/Geist-SemiBold.ttf`),
-  readFile(`${fontDir}/geist-mono/GeistMono-Regular.ttf`),
+  readFile(`${fontDir}/Geist-Regular.ttf`),
+  readFile(`${fontDir}/Geist-SemiBold.ttf`),
+  readFile(`${fontDir}/GeistMono-Regular.ttf`),
 ]).then(([regular, semibold, mono]) => [
   { name: 'Geist', data: regular, weight: 400 as const, style: 'normal' as const },
   { name: 'Geist', data: semibold, weight: 600 as const, style: 'normal' as const },

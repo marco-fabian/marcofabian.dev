@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 
-const font = await readFile('node_modules/geist/dist/fonts/geist-sans/Geist-SemiBold.ttf');
+const font = await readFile('assets/fonts/Geist-SemiBold.ttf');
 
 async function iconSvg(size, radius) {
   return satori(
