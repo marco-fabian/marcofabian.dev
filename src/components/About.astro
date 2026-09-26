@@ -1,0 +1,152 @@
+---
+import { Image } from 'astro:assets';
+import { useTranslations, type Lang } from '../i18n/ui';
+import photo from '../assets/marco.jpg';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const credentials = ['Belo Horizonte', 'Clavia', 'High.AI', 'Somedi.AI', 'NetZero', 'UFMG', 'Trybe'];
+const links = [
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/marco-fabian' },
+  { label: 'GitHub', href: 'https://github.com/marco-fabian' },
+];
+---
+
+<section class="about" id="sobre">
+  <div class="container about__grid">
+    <div class="about__photo">
+      <Image src={photo} alt={t('about.photoAlt')} widths={[400, 800]} sizes="(max-width: 900px) 90vw, 440px" />
+    </div>
+
+    <div class="about__copy">
+      <p class="eyebrow">{t('about.eyebrow')}</p>
+      <h2 class="title">{t('about.title')}</h2>
+      <p class="body">{t('about.p1')}</p>
+      <p class="body">{t('about.p2')}</p>
+
+      <p class="creds">{credentials.join(' · ')}</p>
+
+      <div class="actions">
+        <a class="btn" href="/marco-fabian-cv.pdf" download>{t('about.cv')} ↓</a>
+        {
+          links.map((l) => (
+            <a class="link" href={l.href} target="_blank" rel="noopener">
+              {l.label} ↗
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about {
+    padding: 32px 0 112px;
+  }
+
+  .about__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 64px;
+    align-items: center;
+  }
+
+  .about__photo {
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ddd;
+  }
+
+  .about__photo img {
+    width: 100%;
+    height: auto;
+    filter: grayscale(1) contrast(1.05);
+    transition: filter 0.6s;
+  }
+
+  @media (hover: hover) {
+    .about__photo:hover img {
+      filter: grayscale(0.2) contrast(1);
+    }
+  }
+
+  .eyebrow {
+    margin: 0 0 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-on-paper-muted);
+  }
+
+  .title {
+    margin: 0 0 24px;
+    font-size: clamp(26px, 3vw, 36px);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .body {
+    margin: 0 0 18px;
+    max-width: 580px;
+    font-size: 17px;
+    line-height: 1.7;
+    color: #3a3a3a;
+  }
+
+  .creds {
+    margin: 28px 0 32px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: #8a8a8a;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+  }
+
+  .btn {
+    padding: 13px 24px;
+    border-radius: var(--pill);
+    background: var(--ink);
+    color: var(--text-on-ink);
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .btn:hover {
+    opacity: 0.85;
+  }
+
+  .link {
+    font-size: 15px;
+    text-decoration: none;
+    border-bottom: 1px solid #cfcfcf;
+    transition: border-color 0.2s;
+  }
+
+  .link:hover {
+    border-color: #111;
+  }
+
+  @media (max-width: 900px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 40px;
+    }
+
+    .about__photo {
+      max-width: 420px;
+    }
+  }
+</style>

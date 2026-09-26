@@ -37,6 +37,14 @@ export const ui = {
     'services.shiftsLabel': 'o que muda quando o agente entra',
     'services.processEyebrow': 'como funciona',
     'services.processTitle': 'Quatro passos. Depois, o agente trabalha e eu acompanho.',
+    'about.eyebrow': 'sobre',
+    'about.title': 'Oi, eu sou o Marco.',
+    'about.p1':
+      'Programo profissionalmente desde 2022. Comecei com APIs em Node.js, passei por ERP e integrações, e desde 2025 construo agentes de IA para empresas reais. Curso Ciência da Computação na UFMG e me formei em Desenvolvimento Full Stack pela Trybe.',
+    'about.p2':
+      'Os primeiros agentes nasceram em n8n. Com o volume crescendo, levei tudo para uma arquitetura code-first: Kestra, Python, Git, CI. Hoje lidero o time de implantação de IA na Clavia, onde nossos agentes atendem mais de 40 negócios no WhatsApp. Entrei como engenheiro e fui promovido a líder depois de ser eleito Employee of the Month.',
+    'about.photoAlt': 'Marco Fabian sorrindo, de camisa branca, segurando uma caneca de café',
+    'about.cv': 'Baixar CV',
   },
   en: {
     'meta.title': 'Marco Fabian · AI Engineer',
@@ -72,6 +80,14 @@ export const ui = {
     'services.shiftsLabel': 'what changes when the agent comes in',
     'services.processEyebrow': 'how it works',
     'services.processTitle': 'Four steps. Then the agent works and I keep watch.',
+    'about.eyebrow': 'about',
+    'about.title': 'Hi, I’m Marco.',
+    'about.p1':
+      'I’ve been writing software professionally since 2022. I started with Node.js APIs, moved through ERP systems and integrations, and since 2025 I’ve been building AI agents for real businesses. I’m studying Computer Science at UFMG and graduated in Full Stack Development from Trybe.',
+    'about.p2':
+      'The first agents were built in n8n. As volume grew, I moved everything to a code-first architecture: Kestra, Python, Git, CI. Today I lead the AI implementation team at Clavia, where our agents serve 40+ businesses on WhatsApp. I joined as an engineer and was promoted to lead after being named Employee of the Month.',
+    'about.photoAlt': 'Marco Fabian smiling, in a white shirt, holding a coffee mug',
+    'about.cv': 'Download CV',
   },
 } as const;
 
