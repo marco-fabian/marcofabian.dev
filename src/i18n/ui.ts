@@ -28,6 +28,10 @@ export const ui = {
     'status.incident': 'incidente resolvido',
     'status.footer': '15 mil mensagens por dia · 40+ negócios atendidos · ~5 mil agendamentos',
     'status.updated': 'Números reais de produção · atualizado em set/2026',
+    'cases.eyebrow': 'cases',
+    'cases.title': 'O que eu coloquei em produção',
+    'cases.featured': 'destaque',
+    'cases.read': 'Ler o case',
   },
   en: {
     'meta.title': 'Marco Fabian · AI Engineer',
@@ -54,6 +58,10 @@ export const ui = {
     'status.incident': 'incident resolved',
     'status.footer': '15k messages a day · 40+ businesses served · ~5k appointments booked',
     'status.updated': 'Real production numbers · updated Sep 2026',
+    'cases.eyebrow': 'cases',
+    'cases.title': 'What I’ve shipped to production',
+    'cases.featured': 'featured',
+    'cases.read': 'Read the case',
   },
 } as const;
 

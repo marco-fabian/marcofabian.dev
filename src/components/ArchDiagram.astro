@@ -1,0 +1,179 @@
+---
+import type { Lang } from '../i18n/ui';
+
+// Diagrama da plataforma Kestra: entrada → orquestração → integrações.
+// As linhas "fluem" para sugerir mensagens passando pelo sistema.
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const pt = lang === 'pt';
+const outputs = [
+  { y: 36, name: 'llm', sub: 'openrouter · gemini' },
+  { y: 92, name: 'supabase', sub: 'postgres · rls' },
+  { y: 148, name: 'chatwoot', sub: pt ? 'handoff humano' : 'human handoff' },
+  { y: 204, name: pt ? 'calendários' : 'calendars', sub: 'google · amigo · gds' },
+];
+const title = pt
+  ? 'Arquitetura: o WhatsApp envia mensagens ao Kestra, que roda o receptor e o agentic loop com 12 tools e se integra a LLMs, Supabase, Chatwoot e calendários.'
+  : 'Architecture: WhatsApp sends messages to Kestra, which runs the receiver and a 12-tool agentic loop, integrated with LLMs, Supabase, Chatwoot and calendars.';
+---
+
+<svg class="arch arch--h" viewBox="0 0 560 260" role="img" aria-labelledby="arch-title-h">
+  <title id="arch-title-h">{title}</title>
+
+  <!-- entrada -->
+  <g class="node">
+    <rect x="8" y="98" width="120" height="64" rx="8"></rect>
+    <text x="22" y="124" class="n">whatsapp</text>
+    <text x="22" y="143" class="s">cloud api · waha</text>
+  </g>
+
+  <path class="flow" d="M128 130 H176"></path>
+
+  <!-- orquestração -->
+  <g class="node node--core">
+    <rect x="176" y="40" width="176" height="180" rx="10"></rect>
+    <text x="192" y="64" class="s">kestra · 3 namespaces</text>
+    <rect class="inner" x="192" y="78" width="144" height="50" rx="6"></rect>
+    <text x="204" y="100" class="n">wa-message-</text>
+    <text x="204" y="117" class="n">receiver</text>
+    <path class="flow" d="M264 128 V148"></path>
+    <rect class="inner" x="192" y="148" width="144" height="56" rx="6"></rect>
+    <text x="204" y="171" class="n">agent-loop</text>
+    <text x="204" y="190" class="s">{pt ? '12 tools · i/o tipado' : '12 tools · typed i/o'}</text>
+  </g>
+
+  <!-- integrações -->
+  {
+    outputs.map((o) => (
+      <g>
+        <path class="flow" d={`M352 130 C 380 130, 380 ${o.y + 16}, 408 ${o.y + 16}`} />
+        <g class="node">
+          <rect x="408" y={o.y} width="144" height="40" rx="8" />
+          <text x="420" y={o.y + 17} class="n">
+            {o.name}
+          </text>
+          <text x="420" y={o.y + 31} class="s">
+            {o.sub}
+          </text>
+        </g>
+      </g>
+    ))
+  }
+</svg>
+
+<!-- Versão vertical para telas estreitas: desenhada perto de 1:1 para o texto continuar legível -->
+<svg class="arch arch--v" viewBox="0 0 320 504" role="img" aria-labelledby="arch-title-v">
+  <title id="arch-title-v">{title}</title>
+
+  <g class="node">
+    <rect x="90" y="4" width="140" height="52" rx="8"></rect>
+    <text x="104" y="26" class="n">whatsapp</text>
+    <text x="104" y="43" class="s">cloud api · waha</text>
+  </g>
+
+  <path class="flow" d="M160 56 V80"></path>
+
+  <g class="node node--core">
+    <rect x="40" y="80" width="240" height="176" rx="10"></rect>
+    <text x="56" y="104" class="s">kestra · 3 namespaces</text>
+    <rect class="inner" x="56" y="116" width="208" height="44" rx="6"></rect>
+    <text x="70" y="143" class="n">wa-message-receiver</text>
+    <path class="flow" d="M160 160 V180"></path>
+    <rect class="inner" x="56" y="180" width="208" height="56" rx="6"></rect>
+    <text x="70" y="203" class="n">agent-loop</text>
+    <text x="70" y="222" class="s">{pt ? '12 tools · i/o tipado' : '12 tools · typed i/o'}</text>
+  </g>
+
+  <path class="flow" d="M160 256 V272 H20 V478"></path>
+
+  {
+    outputs.map((o, i) => {
+      const y = 288 + i * 56;
+      return (
+        <g>
+          <path class="flow" d={`M20 ${y + 22} H40`} />
+          <g class="node">
+            <rect x="40" y={y} width="240" height="44" rx="8" />
+            <text x="54" y={y + 19} class="n">
+              {o.name}
+            </text>
+            <text x="54" y={y + 34} class="s">
+              {o.sub}
+            </text>
+          </g>
+        </g>
+      );
+    })
+  }
+</svg>
+
+<style>
+  .arch {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .arch--v {
+    display: none;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 600px) {
+    .arch--h {
+      display: none;
+    }
+
+    .arch--v {
+      display: block;
+    }
+  }
+
+  .node rect {
+    fill: #0c0c0c;
+    stroke: #2a2a2a;
+  }
+
+  .node--core > rect:first-of-type {
+    fill: #080808;
+    stroke: #3a3a3a;
+  }
+
+  .node .inner {
+    fill: #141414;
+    stroke: #2a2a2a;
+  }
+
+  text {
+    font-family: var(--font-mono);
+  }
+
+  .n {
+    fill: #f0f0f0;
+    font-size: 12px;
+  }
+
+  .s {
+    fill: #7a7a7a;
+    font-size: 10px;
+  }
+
+  .flow {
+    fill: none;
+    stroke: var(--live);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 5;
+    opacity: 0.8;
+    animation: flow 1.2s linear infinite;
+  }
+
+  @keyframes flow {
+    to {
+      stroke-dashoffset: -16;
+    }
+  }
+</style>

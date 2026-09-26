@@ -1,0 +1,235 @@
+---
+import { useTranslations, localePath, type Lang } from '../i18n/ui';
+import { cases } from '../data/cases';
+import ArchDiagram from './ArchDiagram.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const [featured, ...rest] = cases[lang];
+const href = (slug: string) => localePath(lang, `/cases/${slug}`);
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="cases" id="cases">
+  <div class="container">
+    <p class="cases__eyebrow">{t('cases.eyebrow')} · {pad(cases[lang].length)}</p>
+    <h2 class="cases__title">{t('cases.title')}</h2>
+
+    <a class="feat" href={href(featured.slug)}>
+      <div class="feat__copy">
+        <span class="feat__tag">01 · {t('cases.featured')}</span>
+        <h3 class="feat__title">{featured.title}</h3>
+        <p class="feat__summary">{featured.summary}</p>
+        <ul class="feat__highlights">
+          {featured.highlights?.map((h) => <li>{h}</li>)}
+        </ul>
+        <p class="stack">{featured.stack.join(' · ')}</p>
+        <span class="feat__cta">{t('cases.read')} <span class="arrow">→</span></span>
+      </div>
+      <div class="feat__visual">
+        <ArchDiagram lang={lang} />
+      </div>
+    </a>
+
+    <ol class="list">
+      {
+        rest.map((c, i) => (
+          <li>
+            <a class="item" href={href(c.slug)}>
+              <span class="item__n">{pad(i + 2)}</span>
+              <span class="item__main">
+                <span class="item__title">{c.title}</span>
+                <span class="item__summary">{c.summary}</span>
+                <span class="stack">{c.stack.join(' · ')}</span>
+              </span>
+              <span class="item__metric">{c.metric}</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .cases {
+    padding: 32px 0 112px;
+  }
+
+  .cases__eyebrow {
+    margin: 0 0 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-on-paper-muted);
+  }
+
+  .cases__title {
+    margin: 0 0 40px;
+    font-size: clamp(26px, 3vw, 36px);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  .arrow {
+    display: inline-block;
+    transition: transform 0.25s;
+  }
+
+  .stack {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #a3a3a3;
+  }
+
+  /* destaque */
+  .feat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 40px;
+    align-items: center;
+    padding: 32px;
+    border: 1px solid var(--paper-line);
+    border-radius: 16px;
+    background: var(--paper-2);
+    transition: border-color 0.25s;
+  }
+
+  .feat:hover {
+    border-color: #cfcfcf;
+  }
+
+  .feat:hover .arrow,
+  .item:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  .feat__tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-on-paper-muted);
+  }
+
+  .feat__title {
+    margin: 10px 0 12px;
+    font-size: clamp(22px, 2.4vw, 28px);
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .feat__summary {
+    margin: 0 0 20px;
+    color: var(--text-on-paper-muted);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .feat__highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .feat__highlights li {
+    padding: 5px 12px;
+    border: 1px solid var(--paper-line);
+    border-radius: var(--pill);
+    font-size: 13px;
+  }
+
+  .feat__cta {
+    display: inline-block;
+    margin-top: 24px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .feat__visual {
+    padding: 20px;
+    border-radius: var(--radius);
+    background: var(--ink);
+  }
+
+  /* lista */
+  .list {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto 24px;
+    gap: 20px;
+    align-items: baseline;
+    padding: 24px 8px;
+    border-bottom: 1px solid var(--paper-line);
+    transition: background 0.25s;
+  }
+
+  .item:hover {
+    background: var(--paper-2);
+  }
+
+  .item__n {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #a3a3a3;
+  }
+
+  .item__main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .item__title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .item__summary {
+    color: var(--text-on-paper-muted);
+    font-size: 15px;
+  }
+
+  .item__metric {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: #1a9e5a;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 900px) {
+    .feat {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 20px;
+      gap: 24px;
+    }
+
+    .item {
+      grid-template-columns: 28px minmax(0, 1fr) 16px;
+      gap: 12px;
+    }
+
+    .item__metric {
+      grid-column: 2;
+      grid-row: 2;
+    }
+  }
+</style>
