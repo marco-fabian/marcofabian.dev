@@ -7,6 +7,8 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://marcofabian.dev',
+  // Mesma convenção do html_handling no wrangler.jsonc: URLs sem barra final
+  trailingSlash: 'never',
   i18n: {
     locales: ['pt', 'en'],
     defaultLocale: 'pt',

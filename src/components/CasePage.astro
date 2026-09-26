@@ -30,7 +30,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   <header class="head">
     <Nav lang={lang} path={`/cases/${caseSlug(entry)}`} />
     <div class="container">
-      <a class="back" href={localePath(lang, '/#cases')}>{t('case.back')}</a>
+      <a class="back" href={`${localePath(lang)}#cases`}>{t('case.back')}</a>
       <p class="kicker">
         case {pad(d.order)} · {d.client}
         {d.live && <span class="live"><span class="dot" aria-hidden="true" />{t('case.live')}</span>}

@@ -5,6 +5,8 @@
   "compatibility_date": "2026-09-26",
   "assets": {
     "directory": "./dist",
+    // Os links do site não usam barra final (/en, /cases/kestra): serve direto, sem redirecionar
+    "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page"
   }
 }
