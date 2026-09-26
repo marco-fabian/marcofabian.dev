@@ -1,0 +1,239 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+import { statusRows } from '../data/status';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const rows = statusRows[lang];
+const TICKS = 30;
+---
+
+<section class="status" data-status>
+  <div class="container">
+    <p class="status__eyebrow">{t('status.eyebrow')}</p>
+    <h2 class="status__title">{t('status.title')}</h2>
+
+    <ul class="status__rows">
+      {
+        rows.map((row) => (
+          <li class="row">
+            <div class="row__id">
+              <span class="row__service">{row.service}</span>
+              <span class="row__label">{row.label}</span>
+            </div>
+
+            <div class="row__bar">
+              <div class="ticks" aria-hidden="true">
+                {Array.from({ length: TICKS }, (_, i) => {
+                  const incident = row.incidents?.find((x) => x.at === i);
+                  return (
+                    <i
+                      class={incident ? 'tick tick--incident' : 'tick'}
+                      style={`--i:${i}`}
+                      title={incident?.note}
+                    />
+                  );
+                })}
+              </div>
+              <span class="row__window">{row.window}</span>
+            </div>
+
+            <div class="row__metric">
+              <span class="row__state">
+                <span class="row__dot" aria-hidden="true" />
+                {t('status.operational')}
+              </span>
+              <span class="row__value">{row.metric}</span>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="status__foot">
+      <p>{t('status.footer')}</p>
+      <p class="status__updated">{t('status.updated')}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Barras preenchem da esquerda pra direita quando a seção entra na tela
+  document.querySelectorAll<HTMLElement>('[data-status]').forEach((el) => {
+    new IntersectionObserver(
+      ([entry], obs) => {
+        if (!entry.isIntersecting) return;
+        el.classList.add('is-visible');
+        obs.disconnect();
+      },
+      { threshold: 0.3 }
+    ).observe(el);
+  });
+</script>
+
+<style>
+  .status {
+    padding: 96px 0;
+    background: var(--paper);
+  }
+
+  .status__eyebrow {
+    margin: 0 0 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-on-paper-muted);
+  }
+
+  .status__eyebrow::first-letter {
+    color: var(--live);
+  }
+
+  .status__title {
+    margin: 0 0 48px;
+    max-width: 720px;
+    font-size: clamp(26px, 3vw, 36px);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  .status__rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--paper-line);
+    border-radius: var(--radius);
+    background: var(--paper-2);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 0.9fr);
+    gap: 32px;
+    align-items: center;
+    padding: 22px 24px;
+  }
+
+  .row + .row {
+    border-top: 1px solid var(--paper-line);
+  }
+
+  .row__id {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .row__service {
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+
+  .row__label {
+    font-size: 13px;
+    color: var(--text-on-paper-muted);
+  }
+
+  .row__bar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ticks {
+    display: flex;
+    gap: 3px;
+    height: 28px;
+  }
+
+  .tick {
+    flex: 1;
+    border-radius: 2px;
+    background: var(--live);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition-delay: calc(var(--i) * 18ms);
+  }
+
+  .tick--incident {
+    background: #f0b429;
+    cursor: help;
+  }
+
+  .is-visible .tick {
+    transform: scaleY(1);
+  }
+
+  .row__window {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #a3a3a3;
+  }
+
+  .row__metric {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
+  }
+
+  .row__state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #1a9e5a;
+  }
+
+  .row__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--live);
+  }
+
+  .row__value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .status__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-on-paper-muted);
+  }
+
+  .status__foot p {
+    margin: 0;
+  }
+
+  .status__updated {
+    color: #a3a3a3;
+  }
+
+  @media (max-width: 820px) {
+    .row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .row__metric {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+</style>

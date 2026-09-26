@@ -22,6 +22,12 @@ export const ui = {
     'demo.toChat': '← ver conversa',
     'demo.chatLabel': 'WhatsApp · agente de IA',
     'demo.logLabel': 'execução do agente',
+    'status.eyebrow': '● status · sistemas em produção',
+    'status.title': 'Não são projetos de portfólio. São sistemas que clientes usam todo dia.',
+    'status.operational': 'operacional',
+    'status.incident': 'incidente resolvido',
+    'status.footer': '15 mil mensagens por dia · 40+ negócios atendidos · ~5 mil agendamentos',
+    'status.updated': 'Números reais de produção · atualizado em set/2026',
   },
   en: {
     'meta.title': 'Marco Fabian · AI Engineer',
@@ -42,6 +48,12 @@ export const ui = {
     'demo.toChat': '← back to chat',
     'demo.chatLabel': 'WhatsApp · AI agent',
     'demo.logLabel': 'agent execution',
+    'status.eyebrow': '● status · systems in production',
+    'status.title': 'Not portfolio projects. Systems clients rely on every day.',
+    'status.operational': 'operational',
+    'status.incident': 'incident resolved',
+    'status.footer': '15k messages a day · 40+ businesses served · ~5k appointments booked',
+    'status.updated': 'Real production numbers · updated Sep 2026',
   },
 } as const;
 
