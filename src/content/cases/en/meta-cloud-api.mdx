@@ -1,0 +1,64 @@
+---
+order: 3
+title: Migration to the official WhatsApp API
+summary: Production AI agents moved off unofficial APIs (UAZAPI and Evolution) onto Meta’s Cloud API, with a reusable runbook for future migrations.
+client: Travel agency and medical clinics
+role: Migration architecture and execution
+period: Aug 2026
+stack: [meta graph api, whatsapp cloud api v25, business manager, n8n, supabase, python]
+results:
+  - { value: 'v25', label: 'official Meta Cloud API' }
+  - { value: '4 of 5', label: 'sub-workflows shared across clients' }
+  - { value: '1', label: 'reusable runbook' }
+---
+
+import Flow from '../../../components/Flow.astro';
+
+## Context
+
+Unofficial WhatsApp APIs are quick to set up, but the bill comes later: instability, the risk of the number getting banned, and no support when something breaks. With one of them, operations went down for a full day.
+
+I migrated agents that were already in production, including a travel agency SDR and appointment bots for medical clinics, to the **WhatsApp Cloud API (Graph API v25)**. The goal was to get out of that risk without stopping clients’ operations, and to leave a documented path for future migrations.
+
+## Architecture
+
+<Flow
+  steps={[
+    { name: 'meta webhook', sub: 'cloud api v25' },
+    { name: 'hub', sub: 'n8n' },
+    { name: 'crm', sub: 'team timeline' },
+    { name: 'agent', sub: 'per client' },
+  ]}
+  caption="A hub receives Meta’s webhook and routes each message to the CRM and to the right agent."
+/>
+
+- **Coexistence mode:** the number keeps working in the WhatsApp Business phone app while the API runs in parallel. The team doesn’t lose the channel it already used.
+- **Shared sub-workflows:** 4 of the 5 Cloud API sub-workflows serve every client and are configured per client in Supabase. A new client is configuration, not a new flow.
+- **Safe switchover:** each workflow was duplicated, adjusted and only then activated in place of the old one, with snapshots before and after every change.
+
+## Decisions and challenges
+
+### The runbook
+
+I wrote a reusable step-by-step covering webhook subscription order, the verification handshake, message templates, and unblocking billing and tax data (error 141006 and the “incomplete tax information” that blocks sending).
+
+### Traps that only show up in production
+
+- **Message echoes:** when a human replies from the phone, the customer’s number comes in `message_echoes[].to`, not in `from`. Read `from` carelessly and the bot starts replying to itself.
+- **Brazil’s ninth digit:** Meta normalizes the number, so the `wa_id` it returns became the canonical contact key.
+- **Media:** URLs require a token, expire in about 5 minutes, and the token only works for its own number. That shapes how media downloads must be designed for each client.
+- **Broken accents:** an escaping step inherited from the old API corrupted accented characters. I fixed it by parsing the JSON properly.
+
+### Diagnosing Meta accounts
+
+Numbers stuck in failed sign-ups don’t show up in WhatsApp Manager. I wrote a Graph API script that scans the client’s Business Managers and WhatsApp accounts, finds pending, unverified or disconnected numbers and orphaned accounts, and prints the steps to release each number.
+
+### Meta’s access models
+
+I documented when acting as a direct developer is enough (own app and System User token) and when the Tech Provider flow is required, where the WhatsApp account is created in the client’s Business Manager and shared with the provider.
+
+## Results
+
+- **Travel agency and medical clinic** agents running on the **official Cloud API**, out of the risk of unofficial APIs.
+- **4 of 5 sub-workflows shared** across clients, configured through data.
+- A reusable **runbook** and **diagnostic script** for future migrations.

@@ -31,7 +31,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       </p>
       <h1 class="title">{d.title}</h1>
       <p class="summary">{d.summary}</p>
-      <ul class="results">
+      <ul class="results" style={`--n: ${d.results.length}`}>
         {
           d.results.map((r) => (
             <li>
@@ -152,8 +152,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
   .results {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr));
     gap: 24px;
+    max-width: calc(var(--n, 4) * 260px);
     margin: 48px 0 0;
     padding: 28px 0 0;
     list-style: none;

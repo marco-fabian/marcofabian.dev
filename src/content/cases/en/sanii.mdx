@@ -1,0 +1,79 @@
+---
+order: 2
+title: AI ticketing hub · Sanii
+summary: Monitoring ~140 WhatsApp groups with AI classification. Absences and complaints become tickets automatically, before any family is left without a caregiver.
+client: Sanii
+role: Contract project · architecture, development and rollout
+period: Mar 2026 → present · delivered in 30 days, ongoing support
+stack: [n8n, javascript, python, gemini, airtable, uazapi, redis, google chat]
+results:
+  - { value: '~99', label: 'groups monitored' }
+  - { value: '108', label: 'tickets in the first 6 days' }
+  - { value: '35/36', label: 'test scenarios passed' }
+  - { value: '~80%', label: 'lower inference cost' }
+---
+
+import Flow from '../../../components/Flow.astro';
+
+## Context
+
+Sanii connects families with caregivers for elderly people. The whole operation runs in WhatsApp groups: about 70 families, two groups per family, ~90 shifts a day and ~200 caregivers.
+
+The operations team couldn’t keep up. Announced absences, last-minute absences and family complaints got lost in the conversations. The worst case was real: a family waking up with no caregiver. Nothing filtered or classified the messages.
+
+I designed and delivered, in 30 days, a system that silently reads every group, uses AI to spot what matters and turns it into an actionable ticket for the team.
+
+## Architecture
+
+<Flow
+  steps={[
+    { name: 'webhook', sub: '~140 groups' },
+    { name: 'pre-filter', sub: 'rules, no llm' },
+    { name: 'debounce', sub: 'redis' },
+    { name: 'classification', sub: 'gemini' },
+    { name: 'dedup', sub: 'llm-as-judge' },
+    { name: 'ticket + alert', sub: 'airtable · whatsapp' },
+  ]}
+  caption="Only messages that pass the pre-filter reach the model."
+/>
+
+- **Ingestion:** the webhook receives messages and a **deterministic pre-filter** drops what doesn’t need AI: the bot’s own messages, media, short texts. Then comes debounce and Gemini classification into four classes: announced absence, last-minute absence, complaint or irrelevant.
+- **Cross-group deduplication:** the same absence often shows up in more than one group. An **LLM-as-judge** decides whether it’s the same case before opening another ticket.
+- **Specialized workflows:** absences are checked against the shift table (12 h and under-2 h windows). A **Caregiver Resolver** combines three signals with confidence tiers so the ticket names the right caregiver, not whoever sent the message.
+- **Operation by reaction:** alerts land in an ops group and the team manages tickets by reacting to the message (👀 in progress, ✅ resolved, ❌ dismissed).
+- **AI-written shift handover reports** at 7am and 7pm, plus a WhatsApp connection health check every 20 minutes.
+
+## Decisions and challenges
+
+### Cost under control from day one
+
+Sending 140 whole groups to an LLM would be slow and expensive. The rule-based pre-filter runs before any AI call and cuts **about 80% of inference cost**.
+
+### A rate limit n8n couldn’t wait for
+
+After a 429, Airtable requires a 30-second wait, but n8n caps retries at 5 seconds. I built a **35-second backoff branch**, with a manual-recovery alert if it still fails.
+
+### The fallback nobody had tested
+
+The fallback model pointed to a retired model and returned 404. It only surfaced when the primary model failed. Since then I **test fallback paths on purpose**, not just the happy path.
+
+### When an external system disappears
+
+The ticketing system used at the start was removed from the environment without notice. I restructured the flow so ticket status lives **100% in Airtable**, and operations were back the same day.
+
+### No single point of failure in a person
+
+A personal credential rotation silently took down several workflows. I moved everything to **company-owned tokens**, so operations don’t depend on the developer’s account.
+
+### Safe changes in production
+
+Every feature has a **kill switch**, and every change has a backup and a rollback script. Rollout was gradual: 10 pilot groups first, the whole operation three days later.
+
+## Results
+
+- **About 99 groups** monitored in production, rolled out from 10 pilot groups to 100% in three days.
+- **108 tickets** created automatically in the first 6 days (~18 a day, 61% complaints and 39% absences).
+- **35 of 36 test scenarios** passed before go-live, and 10 parallel runs with no dropped messages.
+- **339 historical tickets** migrated with zero duplicates.
+- **125 groups** mapped to 65 clients with fuzzy matching.
+- The group monitor found and enabled **15 groups** that weren’t being monitored.

@@ -1,0 +1,84 @@
+---
+// Fluxo linear de etapas (entrada → processamento → saída) para os cases sem diagrama próprio.
+interface Props {
+  steps: { name: string; sub?: string }[];
+  caption?: string;
+}
+
+const { steps, caption } = Astro.props;
+---
+
+<figure class="figure flow">
+  <ol>
+    {
+      steps.map((s) => (
+        <li>
+          <span class="flow__name">{s.name}</span>
+          {s.sub && <span class="flow__sub">{s.sub}</span>}
+        </li>
+      ))
+    }
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 28px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+  }
+
+  li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 10px 14px;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    background: #0c0c0c;
+  }
+
+  li:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -21px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--live);
+    font-size: 13px;
+  }
+
+  .flow__name {
+    color: #f0f0f0;
+    font-size: 13px;
+  }
+
+  .flow__sub {
+    color: #7a7a7a;
+    font-size: 11px;
+  }
+
+  @media (max-width: 640px) {
+    ol {
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    li:not(:last-child)::after {
+      content: '↓';
+      right: auto;
+      left: 18px;
+      top: auto;
+      bottom: -20px;
+      transform: none;
+    }
+  }
+</style>

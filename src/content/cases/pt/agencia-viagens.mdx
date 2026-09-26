@@ -1,0 +1,64 @@
+---
+order: 4
+title: SDR com IA para agência de viagens
+summary: Agente de pré-venda que qualifica leads de passagens internacionais no WhatsApp e entrega o atendimento pronto para o vendedor, dentro do CRM que o time já usa.
+client: Agência de viagens · Brasil → Portugal
+role: Arquitetura e desenvolvimento
+period: '2026'
+stack: [n8n, supabase, redis, gemini, openrouter, whisper, gpt-4o, whatsapp cloud api, chatwoot, searchapi, browserless]
+results:
+  - { value: '3', label: 'idiomas atendidos (PT, EN, ES)' }
+  - { value: '12 h', label: 'cache de cotações de voo' }
+  - { value: 'R$ 0', label: 'custo de renderização das cotações' }
+---
+
+import Flow from '../../../components/Flow.astro';
+
+## Contexto
+
+Agências de viagem perdem vendas no primeiro contato: a resposta demora e os dados da viagem chegam soltos, espalhados em várias mensagens. Quando o vendedor finalmente pega a conversa, ainda precisa perguntar tudo de novo.
+
+Construí um SDR com IA que atende o lead no WhatsApp em português, inglês ou espanhol, coleta origem, destino, datas, passageiros, bagagem e preferência de voo **uma pergunta por vez**, move o lead no funil e faz o handoff para o vendedor com um resumo pronto. Tudo roda dentro do CRM que o time já usa.
+
+## Arquitetura
+
+<Flow
+  steps={[
+    { name: 'meta webhook', sub: 'cloud api' },
+    { name: 'hub', sub: 'n8n' },
+    { name: 'debounce', sub: 'redis' },
+    { name: 'agente', sub: 'gemini + tools' },
+    { name: 'resposta', sub: 'via crm' },
+  ]}
+  caption="A resposta sai pelo CRM, então o vendedor vê a conversa inteira, inclusive o que a IA disse."
+/>
+
+- **Pipeline do agente:** normalização do payload da Meta, download de mídia, criação ou atualização do cliente, debounce de rajadas de mensagens no Redis e um gate de "IA ativa". O agente trabalha com tools como `move_to_stage`, `update_client`, `activate_handoff` e `send_media`.
+- **Resposta pelo CRM, e não direto pela Graph API:** as mensagens da IA aparecem na timeline do vendedor, que sempre vê a conversa completa.
+- **Funil orientado a dados:** o comportamento de cada estágio fica descrito no Supabase e é injetado no prompt em tempo de execução. Mudar o funil não exige deploy.
+- **Memória reconstruída** a partir de uma view no Postgres sobre o banco do CRM.
+
+## Decisões e desafios
+
+### Cotação de voo sem sair do WhatsApp
+
+O agente consulta tarifas reais do Google Flights (via SearchApi) e devolve a cotação como **card de imagem**, renderizado por um browserless próprio e guardado no Supabase Storage. Um cache de 12 horas evita pagar pela mesma busca duas vezes, e a renderização não custa nada.
+
+### O humano pode assumir a qualquer momento
+
+O handoff tem **pausa temporizada** (5 minutos) e **desligamento permanente**, controlados por etiquetas no CRM. Antes, o que o vendedor conversava enquanto a IA estava pausada se perdia; com a memória reconstruída pelo banco do CRM, a IA volta sabendo de tudo.
+
+### Follow-up que respeita o lead
+
+Até três toques automáticos (20, 30 e 60 minutos), só dentro da janela de 24 horas do WhatsApp e em horário comercial. Uma função SQL escolhe os candidatos e marca cada um, para dois processos nunca mandarem o mesmo follow-up.
+
+### "Alucinação" que era ferramenta quebrada
+
+O agente começou a inventar respostas. A causa não era o prompt: as tools apontavam para serviços fora do ar e devolviam string vazia. A lição virou regra: **audite as tools antes de mexer no prompt**.
+
+## Resultados
+
+- SDR operando na **API oficial do WhatsApp** em modo coexistência, com o número ainda usável no celular.
+- Atendimento em **3 idiomas**, com áudio (Whisper) e imagem (GPT-4o) entendidos pelo agente.
+- **Cotações de voo em tempo real** como card de imagem, com cache de 12 horas e custo de renderização zero.
+- A mesma infraestrutura atende outros clientes, com configuração por cliente no Supabase.

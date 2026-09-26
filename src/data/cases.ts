@@ -31,7 +31,7 @@ const pt: CaseSummary[] = [
     title: 'Migração para a API oficial do WhatsApp',
     summary: 'Agentes em produção saindo de APIs não oficiais para a Cloud API da Meta.',
     stack: ['graph api', 'cloud api v25', 'n8n'],
-    metric: '0 downtime',
+    metric: 'runbook reutilizável',
   },
   {
     slug: 'agencia-viagens',
@@ -64,7 +64,7 @@ const en: CaseSummary[] = [
     title: 'Migration to the official WhatsApp API',
     summary: 'Production agents moved from unofficial APIs to Meta’s Cloud API.',
     stack: ['graph api', 'cloud api v25', 'n8n'],
-    metric: 'zero downtime',
+    metric: 'reusable runbook',
   },
   {
     slug: 'agencia-viagens',

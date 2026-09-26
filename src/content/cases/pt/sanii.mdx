@@ -1,0 +1,79 @@
+---
+order: 2
+title: Central de tickets com IA · Sanii
+summary: Monitoramento de ~140 grupos de WhatsApp com classificação por IA. Faltas e reclamações viram tickets automaticamente, antes que alguma família fique sem cuidador.
+client: Sanii
+role: Projeto contratado · arquitetura, desenvolvimento e rollout
+period: mar/2026 → hoje · entregue em 30 dias, com suporte contínuo
+stack: [n8n, javascript, python, gemini, airtable, uazapi, redis, google chat]
+results:
+  - { value: '~99', label: 'grupos monitorados' }
+  - { value: '108', label: 'tickets nos primeiros 6 dias' }
+  - { value: '35/36', label: 'cenários de teste aprovados' }
+  - { value: '~80%', label: 'menos custo de inferência' }
+---
+
+import Flow from '../../../components/Flow.astro';
+
+## Contexto
+
+A Sanii conecta famílias a cuidadores de idosos. Toda a operação acontece em grupos de WhatsApp: cerca de 70 famílias, dois grupos por família, ~90 plantões por dia e ~200 cuidadores.
+
+O time de operação não conseguia acompanhar o volume. Faltas avisadas, faltas de última hora e reclamações de famílias se perdiam no meio das conversas. O pior cenário era real: uma família acordar sem cuidador. Nada filtrava nem classificava as mensagens.
+
+Projetei e entreguei, em 30 dias, um sistema que lê todos os grupos em silêncio, usa IA para identificar o que importa e transforma isso em ticket acionável para o time.
+
+## Arquitetura
+
+<Flow
+  steps={[
+    { name: 'webhook', sub: '~140 grupos' },
+    { name: 'pré-filtro', sub: 'regras, sem llm' },
+    { name: 'debounce', sub: 'redis' },
+    { name: 'classificação', sub: 'gemini' },
+    { name: 'dedup', sub: 'llm-as-judge' },
+    { name: 'ticket + alerta', sub: 'airtable · whatsapp' },
+  ]}
+  caption="Só as mensagens que passam pelo pré-filtro chegam ao modelo."
+/>
+
+- **Ingestão:** o webhook recebe as mensagens e um **pré-filtro determinístico** descarta o que não precisa de IA: mensagens do próprio bot, mídia, textos curtos. Depois vem o debounce e a classificação com Gemini em quatro classes: falta com aviso, falta de última hora, reclamação ou irrelevante.
+- **Deduplicação entre grupos:** a mesma falta costuma aparecer em mais de um grupo. Um **LLM-as-judge** decide se é o mesmo caso antes de abrir outro ticket.
+- **Workflows especializados:** faltas são cruzadas com a tabela de plantões (janelas de 12 h e de menos de 2 h). Um **Caregiver Resolver** combina três sinais com níveis de confiança para atribuir o ticket ao cuidador certo, e não a quem mandou a mensagem.
+- **Operação por reação:** os alertas chegam num grupo de avisos e o time gerencia os tickets reagindo à mensagem (👀 em andamento, ✅ resolvido, ❌ descartado).
+- **Relatórios de passagem de plantão** gerados por IA às 7h e às 19h, e um health check da conexão com o WhatsApp a cada 20 minutos.
+
+## Decisões e desafios
+
+### Custo sob controle desde o desenho
+
+Mandar 140 grupos inteiros para um LLM seria caro e lento. O pré-filtro por regras roda antes de qualquer chamada de IA e tira **cerca de 80% do custo de inferência**.
+
+### Rate limit que o n8n não sabia esperar
+
+Depois de um erro 429, o Airtable exige 30 segundos de espera, mas o n8n limita o retry a 5 segundos. Criei um **branch de backoff de 35 segundos**, com alerta para recuperação manual se ainda assim falhar.
+
+### O fallback que ninguém tinha testado
+
+O modelo de fallback apontava para um modelo descontinuado e respondia 404. Isso só apareceu quando o modelo principal falhou. Desde então **testo os caminhos de fallback de propósito**, e não só o caminho feliz.
+
+### Quando um sistema externo some
+
+O sistema de tickets usado no começo foi removido do ambiente sem aviso. Reestruturei o fluxo para o status dos tickets viver **100% no Airtable**, e a operação voltou no mesmo dia.
+
+### Nenhum ponto único de falha em pessoa
+
+Uma troca de credencial pessoal derrubou vários workflows em silêncio. Migrei tudo para **tokens da própria empresa**, para que a operação não dependa da conta de quem desenvolveu.
+
+### Mudança segura em produção
+
+Cada funcionalidade tem **kill switch**, e cada alteração tem backup e script de rollback. O rollout foi gradual: 10 grupos piloto primeiro e a operação inteira três dias depois.
+
+## Resultados
+
+- **Cerca de 99 grupos** monitorados em produção, com rollout de 10 grupos piloto para 100% em três dias.
+- **108 tickets** gerados automaticamente nos primeiros 6 dias (~18 por dia, 61% reclamações e 39% faltas).
+- **35 de 36 cenários de teste** aprovados antes do go-live, e 10 execuções paralelas sem perder nenhuma mensagem.
+- **339 tickets históricos** migrados sem nenhuma duplicidade.
+- **125 grupos** mapeados para 65 clientes com fuzzy matching.
+- O monitor de grupos encontrou e ativou sozinho **15 grupos** que não estavam sendo monitorados.

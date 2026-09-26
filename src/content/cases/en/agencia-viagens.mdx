@@ -1,0 +1,64 @@
+---
+order: 4
+title: AI SDR for a travel agency
+summary: A pre-sales agent that qualifies international flight leads on WhatsApp and hands a ready brief to the sales rep, inside the CRM the team already uses.
+client: Travel agency · Brazil → Portugal
+role: Architecture and development
+period: '2026'
+stack: [n8n, supabase, redis, gemini, openrouter, whisper, gpt-4o, whatsapp cloud api, chatwoot, searchapi, browserless]
+results:
+  - { value: '3', label: 'languages served (PT, EN, ES)' }
+  - { value: '12 h', label: 'flight quote cache' }
+  - { value: 'R$ 0', label: 'quote rendering cost' }
+---
+
+import Flow from '../../../components/Flow.astro';
+
+## Context
+
+Travel agencies lose sales at first contact: replies are slow and trip details arrive scattered across several messages. By the time a rep picks up the conversation, they still have to ask everything again.
+
+I built an AI SDR that serves leads on WhatsApp in Portuguese, English or Spanish, collects origin, destination, dates, passengers, baggage and flight preference **one question at a time**, moves the lead through the pipeline and hands off to the rep with a ready summary. It all runs inside the CRM the team already uses.
+
+## Architecture
+
+<Flow
+  steps={[
+    { name: 'meta webhook', sub: 'cloud api' },
+    { name: 'hub', sub: 'n8n' },
+    { name: 'debounce', sub: 'redis' },
+    { name: 'agent', sub: 'gemini + tools' },
+    { name: 'reply', sub: 'via crm' },
+  ]}
+  caption="Replies go out through the CRM, so the rep sees the whole conversation, including what the AI said."
+/>
+
+- **Agent pipeline:** Meta payload normalization, media download, client upsert, Redis debounce for message bursts and an “AI active” gate. The agent works with tools like `move_to_stage`, `update_client`, `activate_handoff` and `send_media`.
+- **Replies through the CRM, not straight to the Graph API:** the AI’s messages show up in the rep’s timeline, so they always see the full conversation.
+- **Data-driven pipeline:** each stage’s behavior is described in Supabase and injected into the prompt at runtime. Changing the pipeline needs no deploy.
+- **Memory rebuilt** from a Postgres view over the CRM’s database.
+
+## Decisions and challenges
+
+### Flight quotes without leaving WhatsApp
+
+The agent pulls real Google Flights fares (via SearchApi) and returns the quote as an **image card**, rendered by a self-hosted browserless container and stored in Supabase Storage. A 12-hour cache avoids paying for the same search twice, and rendering costs nothing.
+
+### A human can take over any time
+
+Handoff has a **timed pause** (5 minutes) and a **permanent off switch**, both controlled by CRM labels. Before, whatever the rep said while the AI was paused got lost; with memory rebuilt from the CRM’s database, the AI comes back knowing everything.
+
+### Follow-ups that respect the lead
+
+Up to three automatic nudges (20, 30 and 60 minutes), only inside WhatsApp’s 24-hour window and during business hours. A SQL function picks the candidates and claims each one, so two processes never send the same follow-up.
+
+### A “hallucination” that was a broken tool
+
+The agent started making up answers. The cause wasn’t the prompt: the tools pointed at dead services and returned empty strings. The lesson became a rule: **audit the tools before touching the prompt**.
+
+## Results
+
+- SDR running on the **official WhatsApp API** in coexistence mode, with the number still usable on the phone.
+- Support in **3 languages**, with audio (Whisper) and images (GPT-4o) understood by the agent.
+- **Real-time flight quotes** as image cards, with a 12-hour cache and zero rendering cost.
+- The same infrastructure serves other clients, configured per client in Supabase.
