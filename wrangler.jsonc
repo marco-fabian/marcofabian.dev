@@ -1,0 +1,10 @@
+// Site 100% estático: o Worker só serve os arquivos gerados pelo `astro build`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "marcofabian-dev",
+  "compatibility_date": "2026-09-26",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

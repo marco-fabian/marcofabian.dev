@@ -28,3 +28,6 @@ pnpm-debug.log*
 CLAUDE.md
 .vscode/
 AGENTS.md
+
+# wrangler
+.wrangler/
