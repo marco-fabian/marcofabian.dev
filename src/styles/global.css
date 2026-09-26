@@ -1,0 +1,77 @@
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
+:root {
+  /* Superfícies: hero escuro, conteúdo claro (layout C) */
+  --ink: #000;
+  --ink-2: #111;
+  --ink-line: #222;
+  --paper: #fafafa;
+  --paper-2: #fff;
+  --paper-line: #e8e8e8;
+
+  --text-on-ink: #f5f5f5;
+  --text-on-ink-muted: #8a8a8a;
+  --text-on-paper: #111;
+  --text-on-paper-muted: #6b6b6b;
+
+  /* O único ponto de cor do site */
+  --live: #3ddc84;
+
+  --font-sans: 'Geist Variable', system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+
+  --container: 1120px;
+  --gutter: clamp(16px, 4vw, 32px);
+  --radius: 12px;
+  --pill: 999px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--text-on-paper);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
