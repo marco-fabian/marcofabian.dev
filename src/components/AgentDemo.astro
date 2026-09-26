@@ -55,7 +55,6 @@ const steps = agentDemo[lang];
   document.querySelectorAll<HTMLElement>('[data-demo]').forEach((root) => {
     const items = [...root.querySelectorAll<HTMLElement>('[data-step]')];
     const total = Math.max(...items.map((el) => Number(el.dataset.step))) + 1;
-    const screens = root.querySelectorAll<HTMLElement>('.demo__chat, .demo__log');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     root.querySelector('[data-toggle]')?.addEventListener('click', () => {
@@ -64,7 +63,6 @@ const steps = agentDemo[lang];
 
     const show = (step: number) => {
       items.forEach((el) => el.classList.toggle('is-on', Number(el.dataset.step) <= step));
-      screens.forEach((s) => s.scrollTo({ top: s.scrollHeight, behavior: 'smooth' }));
     };
 
     if (reduced) {
@@ -147,21 +145,18 @@ const steps = agentDemo[lang];
     display: none;
   }
 
+  /* As duas visões ocupam a mesma célula do grid: a tela fica com a altura da mais alta,
+     o espaço de cada mensagem já está reservado e nada precisa rolar. */
   .demo__screen {
-    position: relative;
-    height: 380px;
+    display: grid;
   }
 
   .demo__chat,
   .demo__log {
-    position: absolute;
-    inset: 0;
+    grid-area: 1 / 1;
     margin: 0;
     padding: 20px;
     list-style: none;
-    overflow-y: auto;
-    scrollbar-width: none;
-    mask-image: linear-gradient(to bottom, transparent 0, #000 48px);
     transition: opacity 0.35s;
   }
 
