@@ -3,6 +3,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "marcofabian-dev",
   "compatibility_date": "2026-09-26",
+  // Custom Domains: o deploy cria DNS e certificado sozinho
+  "routes": [
+    { "pattern": "marcofabian.dev", "custom_domain": true },
+    { "pattern": "www.marcofabian.dev", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./dist",
     // Os links do site não usam barra final (/en, /cases/kestra): serve direto, sem redirecionar
