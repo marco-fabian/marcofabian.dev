@@ -1,6 +1,6 @@
 ---
 import { useTranslations, type Lang } from '../i18n/ui';
-import { agentDemo } from '../data/agent-demo';
+import { agentDemo, type DemoStep } from '../data/agent-demo';
 
 interface Props {
   lang: Lang;
@@ -8,7 +8,17 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
-const steps = agentDemo[lang];
+const scenarios = agentDemo[lang];
+
+const logLine = (line: string) => {
+  const [time, ...rest] = line.split(' ');
+  const body = rest.join(' ');
+  const cls = body.startsWith('✓') ? 'ok' : body.startsWith('→') ? 'tool' : '';
+  return { time, body, cls };
+};
+const convs: { scenario: string; key: string; steps: DemoStep[] }[] = scenarios.flatMap((s) =>
+  s.conversations.map((steps, i) => ({ scenario: s.id, key: `${s.id}:${i}`, steps }))
+);
 ---
 
 <div class="demo" data-demo data-view="chat">
@@ -24,27 +34,42 @@ const steps = agentDemo[lang];
     </button>
   </div>
 
-  <div class="demo__screen">
-    <ol class="demo__chat" aria-label={t('demo.chatLabel')}>
-      {steps.map((s, i) => (
-        <li class={`bubble bubble--${s.chat.kind}`} data-step={i}>{s.chat.text}</li>
-      ))}
-    </ol>
+  <div class="demo__tabs" role="group" aria-label={t('demo.scenarios')}>
+    {
+      scenarios.map((s) => (
+        <button class="demo__tab" type="button" data-tab={s.id} aria-pressed="false">
+          {s.label}
+        </button>
+      ))
+    }
+  </div>
 
-    <ol class="demo__log" aria-label={t('demo.logLabel')}>
-      {steps.map((s, i) =>
-        s.log.map((line) => {
-          const [time, ...rest] = line.split(' ');
-          const body = rest.join(' ');
-          const cls = body.startsWith('✓') ? 'ok' : body.startsWith('→') ? 'tool' : '';
-          return (
-            <li class="line" data-step={i}>
-              <span class="line__time">{time}</span> <span class={cls}>{body}</span>
-            </li>
-          );
-        })
-      )}
-    </ol>
+  <div class="demo__screen">
+    {
+      convs.map((c) => (
+        <div class="conv" data-conv={c.key} data-scenario={c.scenario} aria-hidden="true">
+          <ol class="demo__chat" aria-label={t('demo.chatLabel')}>
+            {c.steps.map((s, i) => (
+              <li class={`bubble bubble--${s.chat.kind}`} data-step={i}>
+                {s.chat.text}
+              </li>
+            ))}
+          </ol>
+          <ol class="demo__log" aria-label={t('demo.logLabel')}>
+            {c.steps.map((s, i) =>
+              s.log.map((line) => {
+                const l = logLine(line);
+                return (
+                  <li class="line" data-step={i}>
+                    <span class="line__time">{l.time}</span> <span class={l.cls}>{l.body}</span>
+                  </li>
+                );
+              })
+            )}
+          </ol>
+        </div>
+      ))
+    }
   </div>
 </div>
 
@@ -53,30 +78,53 @@ const steps = agentDemo[lang];
   const RESTART_MS = 4500;
 
   document.querySelectorAll<HTMLElement>('[data-demo]').forEach((root) => {
-    const items = [...root.querySelectorAll<HTMLElement>('[data-step]')];
-    const total = Math.max(...items.map((el) => Number(el.dataset.step))) + 1;
+    const convs = [...root.querySelectorAll<HTMLElement>('[data-conv]')];
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-tab]')];
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    root.querySelector('[data-toggle]')?.addEventListener('click', () => {
-      root.dataset.view = root.dataset.view === 'chat' ? 'log' : 'chat';
-    });
-
-    const show = (step: number) => {
-      items.forEach((el) => el.classList.toggle('is-on', Number(el.dataset.step) <= step));
-    };
-
-    if (reduced) {
-      show(total - 1);
-      return;
-    }
-
+    let pinned: string | null = null; // cenário escolhido pelo visitante
+    let current: HTMLElement | undefined;
+    let steps: HTMLElement[] = [];
+    let total = 0;
     let step = -1;
     let timer: number;
+    let visible = false;
+
+    // "Baralho": cada conversa só volta depois de todas as outras (do cenário fixado, se houver)
+    // terem aparecido, e nunca repete a atual na virada do baralho.
+    const seen = new Set<HTMLElement>();
+    const pick = () => {
+      const pool = convs.filter((c) => !pinned || c.dataset.scenario === pinned);
+      let unseen = pool.filter((c) => !seen.has(c));
+      if (!unseen.length) {
+        pool.forEach((c) => seen.delete(c));
+        unseen = pool.filter((c) => c !== current);
+      }
+      const next = unseen[Math.floor(Math.random() * unseen.length)] ?? pool[0];
+      seen.add(next);
+      return next;
+    };
+
+    const show = (n: number) => steps.forEach((el) => el.classList.toggle('is-on', Number(el.dataset.step) <= n));
+
+    const activate = (conv: HTMLElement) => {
+      current = conv;
+      convs.forEach((c) => {
+        const on = c === conv;
+        c.classList.toggle('is-active', on);
+        c.setAttribute('aria-hidden', String(!on));
+      });
+      tabs.forEach((tab) => tab.setAttribute('aria-pressed', String(tab.dataset.tab === conv.dataset.scenario)));
+      steps = [...conv.querySelectorAll<HTMLElement>('[data-step]')];
+      total = Math.max(...steps.map((el) => Number(el.dataset.step))) + 1;
+      step = -1;
+      show(reduced ? total - 1 : -1);
+    };
+
     const tick = () => {
       step += 1;
       if (step >= total) {
-        step = -1;
-        show(-1);
+        activate(pick());
         timer = window.setTimeout(tick, 600);
         return;
       }
@@ -84,10 +132,28 @@ const steps = agentDemo[lang];
       timer = window.setTimeout(tick, step === total - 1 ? RESTART_MS : STEP_MS);
     };
 
+    root.querySelector('[data-toggle]')?.addEventListener('click', () => {
+      root.dataset.view = root.dataset.view === 'chat' ? 'log' : 'chat';
+    });
+
+    tabs.forEach((tab) =>
+      tab.addEventListener('click', () => {
+        pinned = tab.dataset.tab ?? null;
+        window.clearTimeout(timer);
+        current = undefined;
+        activate(pick());
+        if (!reduced && visible) timer = window.setTimeout(tick, 300);
+      })
+    );
+
+    activate(pick());
+    if (reduced) return;
+
     // Só anima quando o demo está visível
     new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
       window.clearTimeout(timer);
-      if (entry.isIntersecting) timer = window.setTimeout(tick, 500);
+      if (visible) timer = window.setTimeout(tick, 500);
     }).observe(root);
   });
 </script>
@@ -125,18 +191,27 @@ const steps = agentDemo[lang];
     background: var(--live);
   }
 
-  .demo__toggle {
+  .demo__toggle,
+  .demo__tab {
     all: unset;
     cursor: pointer;
-    color: var(--text-on-ink);
     padding: 4px 10px;
     border: 1px solid var(--ink-line);
     border-radius: var(--pill);
-    transition: border-color 0.2s;
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      color 0.2s;
+  }
+
+  .demo__toggle {
+    color: var(--text-on-ink);
   }
 
   .demo__toggle:hover,
-  .demo__toggle:focus-visible {
+  .demo__toggle:focus-visible,
+  .demo__tab:hover,
+  .demo__tab:focus-visible {
     border-color: #555;
   }
 
@@ -145,17 +220,48 @@ const steps = agentDemo[lang];
     display: none;
   }
 
-  /* As duas visões ocupam a mesma célula do grid: a tela fica com a altura da mais alta,
-     o espaço de cada mensagem já está reservado e nada precisa rolar. */
-  .demo__screen {
+  .demo__tabs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .demo__tab {
+    color: var(--text-on-ink-muted);
+  }
+
+  .demo__tab[aria-pressed='true'] {
+    background: var(--text-on-ink);
+    border-color: var(--text-on-ink);
+    color: var(--ink);
+  }
+
+  /* Todas as conversas e as duas visões ocupam a mesma célula do grid: a tela fica com a
+     altura da conversa mais longa, o espaço já está reservado e nada rola nem pula. */
+  .demo__screen,
+  .conv {
     display: grid;
+  }
+
+  .conv {
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .conv.is-active {
+    visibility: visible;
+    opacity: 1;
   }
 
   .demo__chat,
   .demo__log {
     grid-area: 1 / 1;
     margin: 0;
-    padding: 20px;
+    padding: 16px 20px 20px;
     list-style: none;
     transition: opacity 0.35s;
   }
@@ -211,11 +317,12 @@ const steps = agentDemo[lang];
 
   .bubble--tool {
     align-self: center;
-    max-width: none;
+    max-width: 100%;
     padding: 3px 12px;
     border: 1px solid var(--ink-line);
     font-family: var(--font-mono);
     font-size: 11px;
+    text-align: center;
     color: var(--text-on-ink-muted);
   }
 
