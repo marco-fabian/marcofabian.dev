@@ -24,8 +24,8 @@ const pt: StatusRow[] = [
     metric: '29.062 execuções · 100%',
   },
   {
-    service: 'sanii-ticketing',
-    label: 'Central de tickets com IA (Sanii)',
+    service: 'ticketing-hub',
+    label: 'Central de tickets com IA',
     window: '90 dias',
     metric: '~99 grupos monitorados',
     incidents: [{ at: 11, note: 'Sistema externo removido sem aviso · recuperado no mesmo dia' }],
@@ -46,8 +46,8 @@ const en: StatusRow[] = [
     metric: '29,062 runs · 100%',
   },
   {
-    service: 'sanii-ticketing',
-    label: 'AI ticketing hub (Sanii)',
+    service: 'ticketing-hub',
+    label: 'AI ticketing hub',
     window: '90 days',
     metric: '~99 groups monitored',
     incidents: [{ at: 11, note: 'External system removed without notice · recovered same day' }],

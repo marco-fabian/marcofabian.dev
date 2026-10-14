@@ -20,8 +20,8 @@ const pt: CaseSummary[] = [
     highlights: ['40+ negócios', '90% sem humano', '3 meses sem cair'],
   },
   {
-    slug: 'sanii',
-    title: 'Central de tickets com IA · Sanii',
+    slug: 'central-tickets',
+    title: 'Central de tickets com IA',
     summary: 'IA lê ~140 grupos de WhatsApp e transforma faltas e reclamações em tickets.',
     stack: ['n8n', 'gemini', 'airtable'],
     metric: '~99 grupos',
@@ -53,8 +53,8 @@ const en: CaseSummary[] = [
     highlights: ['40+ businesses', '90% without humans', '3 months, zero downtime'],
   },
   {
-    slug: 'sanii',
-    title: 'AI ticketing hub · Sanii',
+    slug: 'central-tickets',
+    title: 'AI ticketing hub',
     summary: 'AI reads ~140 WhatsApp groups and turns absences and complaints into tickets.',
     stack: ['n8n', 'gemini', 'airtable'],
     metric: '~99 groups',
